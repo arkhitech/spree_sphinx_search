@@ -11,13 +11,13 @@ module Spree::Search
       if facets_hash
         search_options.merge!(:conditions => facets_hash)
       end
-      with_opts = {:is_active => 1}
+      options = {}  #with_opts || 
       if taxon
         taxon_ids = taxon.self_and_descendants.map(&:id)
-        with_opts.merge!(:taxon_ids => taxon_ids)
+        options.merge!(:taxon_ids => taxon_ids)
       else
         taxon_ids = Spree::Taxon.pluck(:id)
-        with_opts.merge!(:taxon_ids => taxon_ids)
+        options.merge!(:taxon_ids => taxon_ids)
       end
 
       # filters = {'183' => [174], '2' => [144, 145]}
@@ -25,31 +25,30 @@ module Spree::Search
         selected_taxon_ids = filters.values.flatten.map &:to_i
         filters.each do |filter_taxon_id, taxon_ids|
           if taxon_ids.any?(&:present?) && filter_taxon_available?(filter_taxon_id, selected_taxon_ids)
-            with_opts.merge!("#{filter_taxon_id}_taxon_ids" => taxon_ids)
+            options.merge!("#{filter_taxon_id}_taxon_ids" => taxon_ids)
           end
         end
       end
 
       if price_from.present? && price_to.present?
-        with_opts.merge!(:price => price_from.to_f..price_to.to_f)
+        options.merge!(:price => price_from.to_f..price_to.to_f)
       end
 
-      search_options.merge!(:with => with_opts)
+      search_options.merge!(:with => options)
       search_options.deep_merge!(custom_options)
 
       facets = Spree::Product.facets(query, search_options)
-      products = facets.for
+      products = Spree::Product.search(query, search_options)
 
       @properties[:products] = products
 
-      corrected_facets = correct_facets(facets, query, search_options)
-      @properties[:facets] = parse_facets_hash(corrected_facets)
+      #corrected_facets = correct_facets(facets, query, search_options)
+      @properties[:facets] = facets.to_hash#parse_facets_hash(corrected_facets)
 
-      if products.suggestion? && products.suggestion.present?
-        @properties[:suggest] = products.suggestion
-      end
-
-      Spree::Product.where(:id => products.map(&:id))
+#      if products.suggestion? && products.suggestion.present?
+#        @properties[:suggest] = products.suggestion
+#      end
+      base_scope.where("#{Spree::Product.table_name}.id" => products.map(&:id))
     end
 
     def prepare(params)
@@ -76,17 +75,6 @@ module Spree::Search
       @properties[:page] = (params[:page].to_i <= 0) ? 1 : params[:page].to_i
       @properties[:manage_pagination] = true
       @properties[:order_by_price] = params[:order_by_price]
-      if !params[:order_by_price].blank?
-        @product_group = Spree::ProductGroup.new.from_route([params[:order_by_price]+"_by_master_price"])
-      elsif params[:product_group_name]
-        @cached_product_group = Spree::ProductGroup.find_by_permalink(params[:product_group_name])
-        @product_group = Spree::ProductGroup.new
-      elsif params[:product_group_query]
-        @product_group = Spree::ProductGroup.new.from_route(params[:product_group_query].split("/"))
-      else
-        @product_group = Spree::ProductGroup.new
-      end
-      @product_group = @product_group.from_search(params[:search]) if params[:search]
     end
 
     def custom_options
@@ -98,12 +86,11 @@ private
     # Copied because we want to use sphinx even if keywords is blank
     # This method is equal to one from spree without unless keywords.blank? in get_products_conditions_for
     def get_base_scope
-      base_scope = @cached_product_group ? @cached_product_group.products.active : Spree::Product.active
+      base_scope = Spree::Product.active
       base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
       base_scope = get_products_conditions_for(base_scope, keywords)
 
-      base_scope = base_scope.on_hand unless Spree::Config[:show_zero_stock_products]
-      base_scope = base_scope.group_by_products_id if @product_group.product_scopes.size > 1
+      #base_scope = base_scope.on_hand unless Spree::Config[:show_zero_stock_products]
       base_scope
     end
 
