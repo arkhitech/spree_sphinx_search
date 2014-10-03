@@ -12,4 +12,6 @@ Spree::ProductsController.class_eval do
     @option_values.merge!(option_values_for_ids)
     return option_values_for_ids
   end
+  
+  
 end
