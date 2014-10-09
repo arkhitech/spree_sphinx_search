@@ -3,7 +3,7 @@ module Spree::Search
     protected
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
     def get_products_conditions_for(base_scope,query)
-      search_options = {:page => page, :per_page => per_page}
+      search_options = {}#{:page => page, :per_page => per_page}
       if order_by_price
         search_options.merge!(:order => :price,
                               :sort_mode => (order_by_price == 'descend' ? :desc : :asc))
