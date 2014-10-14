@@ -4,7 +4,7 @@ module SpreeSphinxSearch
       source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
 
       def copy_config
-        copy_file "sphinx.yml", "config/sphinx.yml"
+        copy_file "thinking_sphinx.yml", "config/thinking_sphinx.yml"
       end
 
     end
