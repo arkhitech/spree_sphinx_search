@@ -1,178 +1,32 @@
 module Spree::Search
   class ThinkingSphinx < Spree::Core::Search::Base
+    def initialize(params)
+      super(params)
+    end
+    
     protected
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
-    def get_products_conditions_for(base_scope,query)
-      search_options = {}#{:page => page, :per_page => per_page}
-      if order_by_price
-        search_options.merge!(:order => :price,
-                              :sort_mode => (order_by_price == 'descend' ? :desc : :asc))
-      end
-      if facets_hash
-        search_options.merge!(:conditions => facets_hash)
-      end
+    def get_products_conditions_for(base_scope, query)
+      search_options = {page: page, per_page: per_page}
       options = {}  #with_opts || 
       if taxon
         taxon_ids = taxon.self_and_descendants.map(&:id)
         options.merge!(:taxon_ids => taxon_ids)
-      else
-        taxon_ids = Spree::Taxon.pluck(:id)
-        options.merge!(:taxon_ids => taxon_ids)
-      end
-
-      # filters = {'183' => [174], '2' => [144, 145]}
-      if filters.present?
-        selected_taxon_ids = filters.values.flatten.map &:to_i
-        filters.each do |filter_taxon_id, taxon_ids|
-          if taxon_ids.any?(&:present?) && filter_taxon_available?(filter_taxon_id, selected_taxon_ids)
-            options.merge!("#{filter_taxon_id}_taxon_ids" => taxon_ids)
-          end
-        end
-      end
-
-      if price_from.present? && price_to.present?
-        options.merge!(:price => price_from.to_f..price_to.to_f)
       end
 
       search_options.merge!(:with => options)
-      search_options.deep_merge!(custom_options)
 
-      facets = Spree::Product.facets(query, search_options)
-      products = Spree::Product.search(query, search_options)
+      @properties[:product_ids] = Spree::Product.search_for_ids(query, search_options)
 
-      @properties[:products] = products
-
-      #corrected_facets = correct_facets(facets, query, search_options)
-      @properties[:facets] = facets.to_hash#parse_facets_hash(corrected_facets)
-
-#      if products.suggestion? && products.suggestion.present?
-#        @properties[:suggest] = products.suggestion
-#      end
-      base_scope.where("#{Spree::Product.table_name}.id" => products.map(&:id))
+      base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
-
-    def prepare(params)
-      @properties[:facets_hash] = params[:facets] || {}
-      @properties[:taxon] = params[:taxon].blank? ? nil : Spree::Taxon.find(params[:taxon])
-      @properties[:keywords] = params[:keywords]
-      @properties[:filters] = params[:filters]
-
-      @properties[:price_from] = params[:price_from].presence.try(:to_f)
-      @properties[:price_to] = params[:price_to].presence.try(:to_f)
-
-      Spree::Product.indexed_properties.each do |prop|
-        indexed_name = [prop[:name], '_property'].join.to_sym
-        @properties[indexed_name] = params[indexed_name]
-      end
-
-      if params[:price_delta].present?
-        @properties[:price_from] *= (1 - params[:price_delta].to_f) if @properties[:price_from].present?
-        @properties[:price_to] *= (1 + params[:price_delta].to_f) if @properties[:price_to].present?
-      end
-
-      per_page = params[:per_page].to_i
-      @properties[:per_page] = per_page > 0 ? per_page : Spree::Config[:products_per_page]
-      @properties[:page] = (params[:page].to_i <= 0) ? 1 : params[:page].to_i
-      @properties[:manage_pagination] = true
-      @properties[:order_by_price] = params[:order_by_price]
-    end
-
-    def custom_options
-      {}
-    end
-
-private
 
     # Copied because we want to use sphinx even if keywords is blank
     # This method is equal to one from spree without unless keywords.blank? in get_products_conditions_for
     def get_base_scope
-      base_scope = Spree::Product.active
-      base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
-      base_scope = get_products_conditions_for(base_scope, keywords)
-
-      #base_scope = base_scope.on_hand unless Spree::Config[:show_zero_stock_products]
+      base_scope = super
+      #base_scope = get_products_conditions_for(base_scope, keywords)
       base_scope
-    end
-
-    def filter_taxon_available?(filter_taxon_id, selected_taxon_ids)
-      filter_taxon = Spree::Taxon.find_by_id(filter_taxon_id) || return
-      return true if filter_taxon.root? || filter_taxon.id.in?(selected_taxon_ids)
-
-      nearest_filter_ancestor = filter_taxon.ancestors.filters.last
-      nearest_filter_ancestor.id.in?(selected_taxon_ids) || nearest_filter_ancestor == taxon
-    end
-
-    # corrects facets for taxons
-    def correct_facets(facets, query, search_options)
-      return facets unless filters.present?
-
-      result = facets.clone
-
-      filters.each do |filter_taxon_id, taxon_ids|
-        if taxon_ids.any?(&:present?)
-          new_search_options = search_options.clone
-          new_search_options[:with] = search_options[:with].clone
-          new_search_options[:with].delete("#{filter_taxon_id}_taxon_ids")
-          new_facets = Spree::Product.facets(query, new_search_options)
-          root_taxon = Spree::Taxon.find_by_id(filter_taxon_id)
-          correct_facets_by_root_taxon(root_taxon, result[:taxon], new_facets[:taxon]) if root_taxon
-        end
-      end
-
-      result
-    end
-
-    def correct_facets_by_root_taxon(root_taxon, old_taxon_hash, new_taxon_hash)
-      taxon_names = root_taxon.filter_options.map(&:name)
-      taxon_names.each do |taxon_name|
-        old_taxon_hash[taxon_name] = new_taxon_hash[taxon_name] if new_taxon_hash[taxon_name].present?
-      end
-    end
-
-    # method should return new scope based on base_scope
-    def parse_facets_hash(facets_hash = {})
-      facets = []
-      facets_hash.each do |name, options|
-        next if options.size <= 1
-        facet = Facet.new(name)
-        options.each do |value, count|
-          next if value.blank?
-          facet.options << FacetOption.new(value, count)
-        end
-        facets << facet
-      end
-      facets
-    end
-  end
-
-  class Facet
-    attr_accessor :options
-    attr_accessor :name
-    def initialize(name, options = [])
-      self.name = name
-      self.options = options
-    end
-
-    def self.translate?(property)
-      return true if property.is_a?(ThinkingSphinx::Field)
-
-      case property.type
-      when :string
-        true
-      when :integer, :boolean, :datetime, :float
-        false
-      when :multi
-        false # !property.all_ints?
-      end
-    end
-  end
-
-  class FacetOption
-    attr_accessor :name
-    attr_accessor :count
-    def initialize(name, count)
-      self.name = name
-      self.count = count
     end
   end
 end

@@ -9,22 +9,15 @@ Install the latest available version of Sphinx. If you're working on Mac, it can
 
     brew install sphinx
 
-Install [Aspell](http://aspell.net/) and at least one Aspell dictionary, which suits to a language you are using in your project.      
-
-    Mac users:
-      brew update
-      brew install aspell --lang=en,ru
-
-    Ubuntu:
-      sudo apt-get install aspell libaspell-dev aspell-en
-
 Include this gem to your Gemfile:
 
-    gem 'spree_sphinx_search', github: 'evrone/spree-sphinx-search'
+    gem 'spree_sphinx_search', github: 'arkhitech/spree-sphinx-search'
 
-Copy config/sphinx.yml to RAILS_ROOT/config/sphinx.yml
 
 ### Usage
+run to install sphinx.yml:
+
+    rails generate spree_sphinx_search:install
 
 To perform the indexing:
 
