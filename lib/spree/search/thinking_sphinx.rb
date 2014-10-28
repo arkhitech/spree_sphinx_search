@@ -16,8 +16,9 @@ module Spree::Search
 
       search_options.merge!(:with => options)
 
-      @properties[:product_ids] = Spree::Product.search_for_ids(query, search_options)
-
+      product_ids = Spree::Product.search_for_ids(query, search_options)
+      @properties[:product_ids] = product_ids
+      @properties[:facets] = product_ids.facets
       base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
