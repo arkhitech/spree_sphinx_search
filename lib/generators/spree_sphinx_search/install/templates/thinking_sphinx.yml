@@ -5,6 +5,7 @@ development:
   morphology: stem_en
   mem_limit: 128M
   max_matches: 25000
+  charset_table: 0..9, a..z, _, A..Z->a..z,-, +, @, %, ., #, U+002C, U+010C->U+010D, U+0106->U+0107, U+0160->U+0161, U+017D->U+017E, U+010D->c,U+0107->c, U+0161->s, U+017E->z, U+010D, U+0107, U+0161, U+017E /
 
 production:
   sql_range_step: 10000000
@@ -13,3 +14,4 @@ production:
   morphology: stem_en
   mem_limit: 128M
   max_matches: 25000
+  charset_table: 0..9, a..z, _, A..Z->a..z,-, +, @, %, ., #, U+002C, U+010C->U+010D, U+0106->U+0107, U+0160->U+0161, U+017D->U+017E, U+010D->c,U+0107->c, U+0161->s, U+017E->z, U+010D, U+0107, U+0161, U+017E /
