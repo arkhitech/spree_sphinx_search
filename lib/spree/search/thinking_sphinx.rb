@@ -49,6 +49,8 @@ module Spree::Search
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
       escaped_query = query && Riddle.escape(query)
+      escaped_query = '\\<' if escaped_query.strip == '<'
+      
       product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
       
       @properties[:product_ids] = product_ids
