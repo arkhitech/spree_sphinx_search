@@ -32,6 +32,10 @@ module Spree::Search
               options.merge!(price: 0.0001..500000.0)
             end          
           end
+        else
+          unless Spree::Config.show_products_without_price
+            options.merge!(price: 0.0001..500000.0)
+          end                    
         end
         if search[:brand_any].present?
           cond_options.merge!(taxon_name: search[:brand_any])
