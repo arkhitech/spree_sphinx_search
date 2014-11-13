@@ -15,26 +15,35 @@ module Spree::Search
       
       if search
         if search[:price_range_any].present?
-          case search[:price_range_any]
-          when /under.*10/i
-            unless Spree::Config.show_products_without_price
-              options.merge!(price: 0.00..10.0)
+          start_range = 50000.0
+          end_range = 0
+          search[:price_range_any].each do |price_range|
+            case price_range
+            when /above.*0/i
+              start_range = 1.0 if start_range > 1.0              
+              end_range = 50000.0 if end_range < 50000
+            when /under.*10/i
+              start_range = 0.0 if start_range > 0.0
+              end_range = 10.0 if end_range < 10.0
+            when /10.*15/i
+              start_range = 10.0 if start_range > 10.0
+              end_range = 15.0 if end_range < 15.0
+            when /15.*18/i
+              start_range = 15.0 if start_range > 15.0
+              end_range = 18.0 if end_range < 18.0
+            when /18.*20/i
+              start_range = 18.0 if start_range > 18.0
+              end_range = 20.0 if end_range < 20.0
+            when /20.*over/i
+              start_range = 20.0 if start_range > 20.0
+              end_range = 50000.0 if end_range < 50000.0
             else
-              options.merge!(price: 0.00..10.0)
-            end          
-          when /10.*15/i
-            options.merge!(price: 10..15.0)
-          when /15.*18/i
-            options.merge!(price: 15..18.0)
-          when /18.*20/i
-            options.merge!(price: 18..20.0)
-          when /20.*over/i
-            options.merge!(price: 20..500000.0)
-          else
-#            unless Spree::Config.show_products_without_price
-#              options.merge!(price: 0.001..500000.0)
-#            end          
+  #            unless Spree::Config.show_products_without_price
+  #              options.merge!(price: 0.001..500000.0)
+  #            end          
+            end
           end
+          options.merge!(price: start_range..end_range)          
         else
 #          unless Spree::Config.show_products_without_price
 #            options.merge!(price: 0.001..500000.0)
