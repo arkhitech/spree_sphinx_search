@@ -32,22 +32,28 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     indexes :meta_description
     indexes :meta_keywords
 
-    indexes taxons.name, as: :taxon_name
+    indexes taxons.name, as: :taxon_name, facets: true
+    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Fragrance Notes' AND spp.product_id = spree_products.id)", as: :fragrance_notes
+    
+    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Brand' AND spp.product_id = spree_products.id)", as: :brand, facets: true
     
     has taxons.id, as: :taxon_ids, facet: true  
     has taxons.id, as: :filter_taxon_ids, facet: true  
+    
+    #has properties.name
   #  has variant.price , as: :price
 #  has variant.original_price , as: :original_price
 
     has master.default_price.amount, :as => :price
 
-    group_by "#{Spree::Product.table_name}.deleted_at"
-    group_by :available_on
+#    group_by "#{Spree::Product.table_name}.deleted_at"
+#    group_by :available_on
+    #group_by "#{Spree::ProductProperty.table_name}.name"
     has is_active_sql, :as => :is_active, :type => :boolean
 
-    #TODO need to define brand property
-    #has property_sql.call('brand'), as: :brand
 
+    #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
+    
     source.model.indexed_attributes.each do |attr|
       has attr[:field], attr[:options]
     end

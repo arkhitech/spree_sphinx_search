@@ -10,14 +10,15 @@ module Spree::Search
       search_options = {page: page, per_page: per_page}
       options = {}     
       cond_options = {}
+      
       if search
         if search[:price_range_any].present?
           case search[:price_range_any]
           when /under.*10/i
             unless Spree::Config.show_products_without_price
-              options.merge!(price: 0.0..10.0)
+              options.merge!(price: 0.00..10.0)
             else
-              options.merge!(price: 0..10.0)
+              options.merge!(price: 0.00..10.0)
             end          
           when /10.*15/i
             options.merge!(price: 10..15.0)
@@ -28,17 +29,26 @@ module Spree::Search
           when /20.*over/i
             options.merge!(price: 20..500000.0)
           else
-            unless Spree::Config.show_products_without_price
-              options.merge!(price: 0.00..500000.0)
-            end          
+#            unless Spree::Config.show_products_without_price
+#              options.merge!(price: 0.001..500000.0)
+#            end          
           end
         else
-          unless Spree::Config.show_products_without_price
-            options.merge!(price: 0.0001..500000.0)
-          end                    
+#          unless Spree::Config.show_products_without_price
+#            options.merge!(price: 0.001..500000.0)
+#          end                    
         end
         if search[:brand_any].present?
-          cond_options.merge!(taxon_name: search[:brand_any])
+#          brands = search[:brand_any]
+#          brand_search_query = brands.join('"| @brand "')
+#          brand_search_query = " (@brand \"#{brand_search_query}\")"
+#          if !brand_search_query.nil?
+#            query << brand_search_query
+#            search_options[:match_mode] = :extended
+#          end 
+#          
+           
+          cond_options.merge!(brand: search[:brand_any])
         end        
         if search[:taxons].present?
           options.merge!(filter_taxon_ids: search[:taxons])
@@ -52,7 +62,8 @@ module Spree::Search
 
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
-      escaped_query = query && Riddle.escape(query)
+#      escaped_query = query && Riddle.escape(query)
+      escaped_query = query
       escaped_query = '\\<' if escaped_query && escaped_query.strip == '<'
       product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
       
