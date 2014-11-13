@@ -32,6 +32,10 @@ module Spree::Search
               options.merge!(price: 0.00..500000.0)
             end          
           end
+        else
+          unless Spree::Config.show_products_without_price
+            options.merge!(price: 0.0001..500000.0)
+          end                    
         end
         if search[:brand_any].present?
           cond_options.merge!(taxon_name: search[:brand_any])
@@ -48,8 +52,9 @@ module Spree::Search
 
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
-
-      product_ids = Spree::Product.search_for_ids(query, search_options)
+      escaped_query = query && Riddle.escape(query)
+      escaped_query = '\\<' if escaped_query && escaped_query.strip == '<'
+      product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
       
       @properties[:product_ids] = product_ids
       @properties[:facets] = product_ids.facets
