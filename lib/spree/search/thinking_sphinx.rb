@@ -15,7 +15,7 @@ module Spree::Search
           case search[:price_range_any]
           when /under.*10/i
             unless Spree::Config.show_products_without_price
-              options.merge!(price: 0.001..10.0)
+              options.merge!(price: 0.0..10.0)
             else
               options.merge!(price: 0..10.0)
             end          
@@ -29,7 +29,7 @@ module Spree::Search
             options.merge!(price: 20..500000.0)
           else
             unless Spree::Config.show_products_without_price
-              options.merge!(price: 0.0001..500000.0)
+              options.merge!(price: 0.00..500000.0)
             end          
           end
         end
