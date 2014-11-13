@@ -39,16 +39,15 @@ module Spree::Search
 #          end                    
         end
         if search[:brand_any].present?
-#          brands = search[:brand_any]
-#          brand_search_query = brands.join('"| @brand "')
-#          brand_search_query = " (@brand \"#{brand_search_query}\")"
-#          if !brand_search_query.nil?
-#            query << brand_search_query
-#            search_options[:match_mode] = :extended
-#          end 
-#          
+          brands = search[:brand_any]
+          brand_search_query = brands.join('"| @brand "')
+          brand_search_query = " (@brand \"#{brand_search_query}\")"
+          query << brand_search_query
+          search_options[:match_mode] = :extended
+         
+          
            
-          cond_options.merge!(brand: search[:brand_any])
+#          cond_options.merge!(brand: search[:brand_any])
         end        
         if search[:taxons].present?
           options.merge!(filter_taxon_ids: search[:taxons])
