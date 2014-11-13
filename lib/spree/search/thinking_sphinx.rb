@@ -10,6 +10,8 @@ module Spree::Search
       search_options = {page: page, per_page: per_page}
       options = {}     
       cond_options = {}
+      escaped_query = "#{query && Riddle.escape(query)}"
+      escaped_query = '\\<' if escaped_query && escaped_query.strip == '<'
       
       if search
         if search[:price_range_any].present?
@@ -42,7 +44,7 @@ module Spree::Search
           brands = search[:brand_any]
           brand_search_query = brands.join('"| @brand "')
           brand_search_query = " (@brand \"#{brand_search_query}\")"
-          query << brand_search_query
+          escaped_query << brand_search_query
           search_options[:match_mode] = :extended
          
           
@@ -61,9 +63,6 @@ module Spree::Search
 
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
-#      escaped_query = query && Riddle.escape(query)
-      escaped_query = query
-      escaped_query = '\\<' if escaped_query && escaped_query.strip == '<'
       product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
       
       @properties[:product_ids] = product_ids
