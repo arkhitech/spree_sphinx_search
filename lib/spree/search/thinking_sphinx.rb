@@ -55,11 +55,14 @@ module Spree::Search
           brand_search_query = " (@brand \"#{brand_search_query}\")"
           escaped_query << brand_search_query
           search_options[:match_mode] = :extended
-         
-          
-           
 #          cond_options.merge!(brand: search[:brand_any])
         end        
+        if search[:alphabet].present?
+          alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
+          escaped_query << alphabet_search_query
+          search_options[:match_mode] = :extended          
+          
+        end
         if search[:taxons].present?
           options.merge!(filter_taxon_ids: search[:taxons])
         end
