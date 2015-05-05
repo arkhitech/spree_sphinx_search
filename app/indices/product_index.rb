@@ -29,8 +29,8 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     indexes master.sku
     indexes variants.sku, as: :variant_skus
     indexes :description
-    indexes :meta_description
-    indexes :meta_keywords
+    #indexes :meta_description
+    #indexes :meta_keywords
 
     indexes taxons.name, as: :taxon_name, facets: true
     indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Fragrance Notes' AND spp.product_id = spree_products.id)", as: :fragrance_notes
