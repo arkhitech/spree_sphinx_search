@@ -1,17 +1,55 @@
 module Spree::Search
-  class ThinkingSphinx < Spree::Core::Search::Base
+  class ThinkingSphinx < Spree::Core::Search::Base    
     def initialize(params)
       super(params)
     end
+
+    def retrieve_products
+      set_base_scope
+      curr_page = page || 1
+      self.search_options.merge!(page: curr_page, per_page: per_page)
+
+      #TODO need to implement show products without price
+#      unless Spree::Config.show_products_without_price
+#        @products = @products.where("spree_prices.amount IS NOT NULL").where("spree_prices.currency" => current_currency)
+#      end
+#      @products = @products.page(curr_page).per(per_page)
+      
+      @products = Spree::Product.search(self.escaped_query, search_options)
+      @properties[:products] = @products
+      @properties[:facets] = @products.facets
+      @products
+      
+
+    end
     
-    protected
+    protected 
+    
+    def search_options
+      @search_options ||= {with: with, conditions: conditions}
+    end
+    
+    def conditions
+      @conditions ||= {}
+    end
+    
+    def with
+      @with ||= {}
+    end
+    
+    def escaped_query
+      @escaped_query ||= ''
+    end
+    
+    def escaped_query=(query)
+      @escaped_query = query
+    end
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
-    def get_products_conditions_for(base_scope, query)
-      search_options = {page: page, per_page: per_page}
-      options = {}     
-      cond_options = {}
-      escaped_query = "#{query && Riddle.escape(query)}"
-      escaped_query = '\\<' if escaped_query && escaped_query.strip == '<'
+    def set_products_conditions_for(query)
+      options = with     
+      cond_options = conditions
+      self.escaped_query = "#{query && Riddle.escape(query)}"
+      self.escaped_query = '\\<' if self.escaped_query && self.escaped_query.strip == '<'
       
       if search
         if search[:price_range_any].present?
@@ -53,13 +91,13 @@ module Spree::Search
           brands = search[:brand_any]
           brand_search_query = brands.join('"| @brand "')
           brand_search_query = " (@brand \"#{brand_search_query}\")"
-          escaped_query << brand_search_query
+          self.escaped_query << brand_search_query
           search_options[:match_mode] = :extended
 #          cond_options.merge!(brand: search[:brand_any])
         end        
         if search[:alphabet].present?
           alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
-          escaped_query << alphabet_search_query
+          self.escaped_query << alphabet_search_query
           search_options[:match_mode] = :extended          
           
         end
@@ -68,26 +106,48 @@ module Spree::Search
         end
       end
       
-      if taxon
-        taxon_ids = taxon.self_and_descendants.map(&:id)
-        options.merge!(taxon_ids: taxon_ids)
-      end
-
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
-      product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
-      
-      @properties[:product_ids] = product_ids
-      @properties[:facets] = product_ids.facets
-      base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
+      #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
-    # Copied because we want to use sphinx even if keywords is blank
-    # This method is equal to one from spree without unless keywords.blank? in get_products_conditions_for
-    def get_base_scope
-      base_scope = super
-      #base_scope = get_products_conditions_for(base_scope, keywords)
-      base_scope
-    end
+          def set_base_scope
+            #base_scope = Spree::Product.active
+            with[:is_active] = true
+            #base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
+            if taxon
+              taxon_ids = taxon.self_and_descendants.map(&:id)
+              with.merge!(taxon_ids: taxon_ids)
+            end
+            set_products_conditions_for(keywords)
+            #TODO search scopes to be implement
+            #base_scope = add_search_scopes(base_scope)
+            
+            add_eagerload_scopes
+          end
+
+          def add_eagerload_scopes 
+            if include_images
+              #scope.eager_load({master: [:prices, :images]})
+              search_options.merge!(sql: {include: {master: [:prices, :images]}})
+            else
+              #scope.includes(master: :prices)
+              search_options.merge!(sql: {include: {master: [:prices]}})
+            end
+          end
+
+          #TODO implement this to be sphinx compatible
+          def add_search_scopes(base_scope)
+            search.each do |name, scope_attribute|
+              scope_name = name.to_sym
+              if base_scope.respond_to?(:search_scopes) && base_scope.search_scopes.include?(scope_name.to_sym)
+                base_scope = base_scope.send(scope_name, *scope_attribute)
+              else
+                base_scope = base_scope.merge(Spree::Product.ransack({scope_name => scope_attribute}).result)
+              end
+            end if search
+            base_scope
+          end
+    
   end
 end
