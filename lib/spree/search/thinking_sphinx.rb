@@ -116,7 +116,14 @@ module Spree::Search
             with[:is_active] = true
             #base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
             if taxon
-              taxon_ids = taxon.self_and_descendants.map(&:id)
+              if taxon.kind_of?(Array)
+                taxon_ids=[]
+                taxon.each do |t|
+                  taxon_ids += t.self_and_descendants.map(&:id)
+                end
+              else
+                taxon_ids = taxon.self_and_descendants.map(&:id)
+              end
               with.merge!(taxon_ids: taxon_ids)
             end
             set_products_conditions_for(keywords)
