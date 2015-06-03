@@ -23,7 +23,7 @@ module Spree::Search
               start_range = 1.0 if start_range > 1.0              
               end_range = 50000.0 if end_range < 50000
             when /under.*10/i
-              start_range = 0.0 if start_range > 0.0
+              start_range = 0.001 if start_range > 0.0
               end_range = 10.0 if end_range < 10.0
             when /10.*15/i
               start_range = 10.0 if start_range > 10.0

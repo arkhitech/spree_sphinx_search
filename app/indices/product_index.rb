@@ -20,7 +20,7 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
           (SELECT spp.value
           FROM #{Spree::ProductProperty.table_name} AS spp
           INNER JOIN #{Spree::Property.table_name} AS sp ON sp.id = spp.property_id
-          WHERE sp.name = '#{property_name}' AND spp.product_id = #{Spree::Product.table_name}.id)
+          WHERE sp.name = '#{property_name}' AND spp.product_id = #{Spree::Product.table_name}.id LIMIT 1)
       eos
       sql.gsub("\n", ' ').gsub('  ', '')
     end
@@ -33,9 +33,9 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     #indexes :meta_keywords
 
     indexes taxons.name, as: :taxon_name, facets: true
-    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Fragrance Notes' AND spp.product_id = spree_products.id)", as: :fragrance_notes
+    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Fragrance Notes' AND spp.product_id = spree_products.id LIMIT 1)", as: :fragrance_notes
     
-    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Brand' AND spp.product_id = spree_products.id)", as: :brand, facets: true
+    indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Brand' AND spp.product_id = spree_products.id LIMIT 1)", as: :brand, facets: true
     
     has taxons.id, as: :taxon_ids, facet: true  
     has taxons.id, as: :filter_taxon_ids, facet: true  
