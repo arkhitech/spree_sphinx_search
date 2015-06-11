@@ -75,6 +75,7 @@ module Spree::Search
 
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
+      search_options.merge!(field_weights: {name: 5})
       product_ids = Spree::Product.search_for_ids(escaped_query, search_options)
       
       @properties[:product_ids] = product_ids
