@@ -1,6 +1,6 @@
 ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     #is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW() #{'AND (spree_products.count_on_hand > 0)' unless Spree::Config[:allow_backorders]} )"
-    is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW())"
+    is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW())"   
     option_sql = lambda do |option_name|
       sql = <<-eos
         SELECT DISTINCT p.id, ov.id
@@ -34,12 +34,13 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
 
     indexes taxons.name, as: :taxon_name, facets: true
     indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Fragrance Notes' AND spp.product_id = spree_products.id)", as: :fragrance_notes
-    
     indexes "(SELECT spp.value FROM spree_product_properties AS spp INNER JOIN spree_properties AS sp ON sp.id = spp.property_id WHERE sp.name = 'Brand' AND spp.product_id = spree_products.id)", as: :brand, facets: true
     
     has taxons.id, as: :taxon_ids, facet: true  
     has taxons.id, as: :filter_taxon_ids, facet: true  
     
+    join variant_images
+    has "COUNT(#{Spree::Image.table_name}.id) > 0", as: :has_images, type: :boolean  
     #has properties.name
   #  has variant.price , as: :price
 #  has variant.original_price , as: :original_price
@@ -50,7 +51,6 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
     has is_active_sql, :as => :is_active, :type => :boolean
-
 
     #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
     

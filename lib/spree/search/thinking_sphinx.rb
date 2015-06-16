@@ -7,7 +7,7 @@ module Spree::Search
     def retrieve_products
       set_base_scope
       curr_page = page || 1
-      self.search_options.merge!(page: curr_page, per_page: per_page)
+#      self.search_options.merge!(page: curr_page, per_page: per_page)
 
       #TODO need to implement show products without price
 #      unless Spree::Config.show_products_without_price
@@ -18,6 +18,7 @@ module Spree::Search
       @products = Spree::Product.search(self.escaped_query, search_options)
       @properties[:products] = @products
       @properties[:facets] = @products.facets
+      @products = @products.page(curr_page).per(per_page)
       @products
       
 
@@ -52,6 +53,12 @@ module Spree::Search
       self.escaped_query = '\\<' if self.escaped_query && self.escaped_query.strip == '<'
       
       if search
+        if search[:price_range].present?
+          price = search[:price_range].split(',')
+          start_range = price[0]
+          end_range = price[1]
+          options.merge!(price: start_range..end_range)
+        end
         if search[:price_range_any].present?
           start_range = 50000.0
           end_range = 0
@@ -103,6 +110,10 @@ module Spree::Search
         end
         if search[:taxons].present?
           options.merge!(filter_taxon_ids: search[:taxons])
+        end
+        
+        if search[:has_images]=='true'
+          options.merge!(has_images: true)
         end
       end
       
