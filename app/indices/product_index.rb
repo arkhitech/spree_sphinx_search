@@ -44,10 +44,10 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     #has properties.name
   #  has variant.price , as: :price
 #  has variant.original_price , as: :original_price
+    
+    has master.default_price.amount, type: :float, as: :master_price
 
-    has master.default_price.amount, :as => :price
-
-#    group_by "#{Spree::Product.table_name}.deleted_at"
+    #group_by "spree_prices.amount"
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
     has is_active_sql, :as => :is_active, :type => :boolean
