@@ -38,7 +38,9 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     
     has taxons.id, as: :taxon_ids, facet: true  
     has taxons.id, as: :filter_taxon_ids, facet: true  
-    
+
+    has shops.id, as: :shop_ids, facet: true
+  
     join variant_images
     has "COUNT(#{Spree::Image.table_name}.id) > 0", as: :has_images, type: :boolean  
     #has properties.name

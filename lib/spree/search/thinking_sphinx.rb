@@ -7,13 +7,13 @@ module Spree::Search
     def retrieve_products
       set_base_scope
       curr_page = page || 1
-#      self.search_options.merge!(page: curr_page, per_page: per_page)
+      #      self.search_options.merge!(page: curr_page, per_page: per_page)
 
       #TODO need to implement show products without price
-#      unless Spree::Config.show_products_without_price
-#        @products = @products.where("spree_prices.amount IS NOT NULL").where("spree_prices.currency" => current_currency)
-#      end
-#      @products = @products.page(curr_page).per(per_page)
+      #      unless Spree::Config.show_products_without_price
+      #        @products = @products.where("spree_prices.amount IS NOT NULL").where("spree_prices.currency" => current_currency)
+      #      end
+      #      @products = @products.page(curr_page).per(per_page)
       
       @products = Spree::Product.search(self.escaped_query, search_options)
       @properties[:products] = @products
@@ -88,16 +88,16 @@ module Spree::Search
               start_range = 20.0 if start_range > 20.0
               end_range = 50000.0 if end_range < 50000.0
             else
-  #            unless Spree::Config.show_products_without_price
-  #              options.merge!(price: 0.001..500000.0)
-  #            end          
+              #            unless Spree::Config.show_products_without_price
+              #              options.merge!(price: 0.001..500000.0)
+              #            end          
             end
           end
           options.merge!(price: start_range..end_range)          
         else
-#          unless Spree::Config.show_products_without_price
-#            options.merge!(price: 0.001..500000.0)
-#          end                    
+          #          unless Spree::Config.show_products_without_price
+          #            options.merge!(price: 0.001..500000.0)
+          #          end                    
         end
         if search[:brand_any].present?
           brands = search[:brand_any]
@@ -105,7 +105,7 @@ module Spree::Search
           brand_search_query = " (@brand \"#{brand_search_query}\")"
           self.escaped_query << brand_search_query
           search_options[:match_mode] = :extended
-#          cond_options.merge!(brand: search[:brand_any])
+          #          cond_options.merge!(brand: search[:brand_any])
         end        
         if search[:alphabet].present?
           alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
@@ -122,55 +122,57 @@ module Spree::Search
         end
       end
       
+      options.merge!(shop_ids: shop) if shop
+      
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
-          def set_base_scope
-            #base_scope = Spree::Product.active
-            with[:is_active] = true
-            #base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
-            if taxon
-              if taxon.kind_of?(Array)
-                taxon_ids=[]
-                taxon.each do |t|
-                  taxon_ids += t.self_and_descendants.map(&:id)
-                end
-              else
-                taxon_ids = taxon.self_and_descendants.map(&:id)
-              end
-              with.merge!(taxon_ids: taxon_ids)
-            end
-            set_products_conditions_for(keywords)
-            #TODO search scopes to be implement
-            #base_scope = add_search_scopes(base_scope)
+    def set_base_scope
+      #base_scope = Spree::Product.active
+      with[:is_active] = true
+      #base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
+      if taxon
+        if taxon.kind_of?(Array)
+          taxon_ids=[]
+          taxon.each do |t|
+            taxon_ids += t.self_and_descendants.map(&:id)
+          end
+        else
+          taxon_ids = taxon.self_and_descendants.map(&:id)
+        end
+        with.merge!(taxon_ids: taxon_ids)
+      end
+      set_products_conditions_for(keywords)
+      #TODO search scopes to be implement
+      #base_scope = add_search_scopes(base_scope)
             
-            add_eagerload_scopes
-          end
+      add_eagerload_scopes
+    end
 
-          def add_eagerload_scopes 
-            if include_images
-              #scope.eager_load({master: [:prices, :images]})
-              search_options.merge!(sql: {include: {master: [:prices, :images]}})
-            else
-              #scope.includes(master: :prices)
-              search_options.merge!(sql: {include: {master: [:prices]}})
-            end
-          end
+    def add_eagerload_scopes 
+      if include_images
+        #scope.eager_load({master: [:prices, :images]})
+        search_options.merge!(sql: {include: {master: [:prices, :images]}})
+      else
+        #scope.includes(master: :prices)
+        search_options.merge!(sql: {include: {master: [:prices]}})
+      end
+    end
 
-          #TODO implement this to be sphinx compatible
-          def add_search_scopes(base_scope)
-            search.each do |name, scope_attribute|
-              scope_name = name.to_sym
-              if base_scope.respond_to?(:search_scopes) && base_scope.search_scopes.include?(scope_name.to_sym)
-                base_scope = base_scope.send(scope_name, *scope_attribute)
-              else
-                base_scope = base_scope.merge(Spree::Product.ransack({scope_name => scope_attribute}).result)
-              end
-            end if search
-            base_scope
-          end
+    #TODO implement this to be sphinx compatible
+    def add_search_scopes(base_scope)
+      search.each do |name, scope_attribute|
+        scope_name = name.to_sym
+        if base_scope.respond_to?(:search_scopes) && base_scope.search_scopes.include?(scope_name.to_sym)
+          base_scope = base_scope.send(scope_name, *scope_attribute)
+        else
+          base_scope = base_scope.merge(Spree::Product.ransack({scope_name => scope_attribute}).result)
+        end
+      end if search
+      base_scope
+    end
     
   end
 end
