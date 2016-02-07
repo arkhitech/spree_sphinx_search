@@ -2,6 +2,8 @@ module Spree::Search
   class ThinkingSphinx < Spree::Core::Search::Base    
     def initialize(params)
       super(params)
+      @properties[:shop] = params[:shop]
+
     end
 
     def retrieve_products
@@ -121,7 +123,7 @@ module Spree::Search
           options.merge!(has_images: true)
         end
       end
-      
+    
       options.merge!(shop_ids: shop) if shop
       
       search_options.merge!(with: options)
