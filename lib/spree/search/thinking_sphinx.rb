@@ -108,24 +108,30 @@ module Spree::Search
           self.escaped_query << brand_search_query
           search_options[:match_mode] = :extended
           #          cond_options.merge!(brand: search[:brand_any])
-        end        
+        end  
+        if search[:brand_ids].present?
+          options.merge!(brand_ids: search[:brand_ids])
+        end
+        if search[:category_ids].present?
+          options.merge!(category_ids: search[:category_ids])
+        end
+        if search[:taxon_ids].present?
+          options.merge!(taxon_ids: search[:taxon_ids])
+        end
         if search[:alphabet].present?
           alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
           self.escaped_query << alphabet_search_query
           search_options[:match_mode] = :extended          
           
         end
-        if search[:taxons].present?
-          options.merge!(filter_taxon_ids: search[:taxons])
-        end
         
         if search[:has_images]=='true'
           options.merge!(has_images: true)
         end
       end
-    
-      options.merge!(shop_ids: shop) if shop
       
+      options.merge!(shop_ids: shop) if shop
+
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])

@@ -40,16 +40,17 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     
     has taxons.id, as: :taxon_ids, facet: true  
     has brand_taxons.id, as: :brand_ids, facet: true  
-    has taxons.id, as: :filter_taxon_ids, facet: true  
+    has category_taxons.id, as: :category_ids, facet: true  
 
     has shops.id, as: :shop_ids, facet: true
-  
+      
     join variant_images
     has "COUNT(#{Spree::Image.table_name}.id) > 0", as: :has_images, type: :boolean  
     #has properties.name
   #  has variant.price , as: :price
 #  has variant.original_price , as: :original_price
     
+    #TODO when searching for price range inside shop, we need to get price of product within the shop 
     has master.default_price.amount, type: :float, as: :master_price
 
     #group_by "spree_prices.amount"
