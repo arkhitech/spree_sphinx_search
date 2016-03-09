@@ -1,4 +1,4 @@
-ThinkingSphinx::Index.define 'spree/shop', with: :active_record do
+ThinkingSphinx::Index.define 'spree/howmuch_shop', with: :active_record do
     
     indexes :name, sortable: true
     indexes :address
