@@ -47,12 +47,12 @@ ThinkingSphinx::Index.define 'spree/product', with: :active_record do
     
     #TODO when searching for price range inside shop, we need to get price of product within the shop 
 #    has master.default_price.amount, type: :float, as: :master_price
-    has shop_variant_prices.price, type: :float, as: :shop_prices
+    has shop_variant_prices.price, type: :bigint, as: :shop_prices
     has shop_variant_prices.shop_id, as: :shop_ids, facet: true
     #group_by "spree_prices.amount"
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
-    has is_active_sql, :as => :is_active, :type => :boolean
+    has is_active_sql, as: :is_active, type: :boolean
 
     #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
     

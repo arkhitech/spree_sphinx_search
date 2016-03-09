@@ -4,8 +4,7 @@ ThinkingSphinx::Index.define 'spree/howmuch_shop', with: :active_record do
     indexes :address
     indexes :description
     
-    has :longitude
-    has :latitude
+    has longitude, latitude
     
     has products.id, as: :product_ids, facet: true  
     has variants.id, as: :variant_ids, facet: true  
