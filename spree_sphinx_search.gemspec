@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'spree_core', '>= 2.3.3'
   s.add_dependency 'thinking-sphinx', '>= 2.0.0'
+  s.add_dependency 'ts-sidekiq-delta', '~> 0.2.0'
 
   s.add_development_dependency 'capybara', '1.0.1'
   s.add_development_dependency 'factory_girl'
