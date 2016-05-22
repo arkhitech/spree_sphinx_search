@@ -1,6 +1,6 @@
 ThinkingSphinx::Index.define('spree/howmuch_shop', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
     
-    is_active_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{Spree::HowmuchShop.table_name}.is_authentic = 't'"
+    is_active_sql = "#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{Spree::HowmuchShop.table_name}.is_authentic = 't'"
     indexes :name, sortable: true
     indexes :address
     indexes :description
