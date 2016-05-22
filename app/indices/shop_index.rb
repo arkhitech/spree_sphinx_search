@@ -6,10 +6,7 @@ ThinkingSphinx::Index.define('spree/howmuch_shop', with: :active_record, delta: 
     indexes :description
     
     has longitude, latitude
-    
-    has products.id, as: :product_ids, facet: true  
-    has variants.id, as: :variant_ids, facet: true  
-  
+      
     has :is_authentic, type: :boolean
     has is_active_sql, as: :is_active, type: :boolean
   end
