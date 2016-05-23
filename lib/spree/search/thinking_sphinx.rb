@@ -61,12 +61,19 @@ module Spree::Search
           end_range = price[1].to_f
           #options.merge!(master_price: start_range..end_range)
           options.merge!(shop_prices: start_range..end_range)
-        end
+        end        
         if search[:price_range_from] || search[:price_range_to]
           start_range = search[:price_range_from].to_i
           end_range = search[:price_range_to] && search[:price_range_to].to_i || 100000
-          #options.merge!(master_price: start_range..end_range)
-          options.merge!(shop_prices: start_range..end_range)
+          if shop
+            options.merge!(shop_ids: shop) if shop
+            options.merge!(shop_and_prices: Spree::ShopVariantPrice.shop_price_value(shop, start_range)..Spree::ShopVariantPrice.shop_price_value(shop, end_range))
+          else
+            #options.merge!(master_price: start_range..end_range)
+            options.merge!(shop_prices: start_range..end_range)
+          end
+        else 
+          options.merge!(shop_ids: shop) if shop            
         end
         if search[:price_range_any].present?
           start_range = 50000.0
@@ -132,7 +139,6 @@ module Spree::Search
         end
       end
       
-      options.merge!(shop_ids: shop) if shop
 
       search_options.merge!(with: options)
       search_options.merge!(conditions: cond_options)

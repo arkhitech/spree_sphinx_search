@@ -50,6 +50,7 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
 #    has master.default_price.amount, type: :float, as: :master_price
     has shop_variant_prices.price, type: :bigint, as: :shop_prices
     has shop_variant_prices.shop_id, as: :shop_ids, facet: true
+    has shop_variant_prices.shop_and_price, as: :shop_and_prices
     #group_by "spree_prices.amount"
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
