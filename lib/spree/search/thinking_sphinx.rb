@@ -29,7 +29,7 @@ module Spree::Search
     protected 
     
     def search_options
-      @search_options ||= {with: with, conditions: conditions}
+      @search_options ||= {with: with, conditions: conditions, max_matches: 25000}
     end
     
     def conditions
