@@ -27,18 +27,27 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
     end
     
     indexes :name, sortable: true
-    indexes master.sku
-    indexes variants.sku, as: :variant_skus
+    #indexes master.sku
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Variant.table_name}.sku), ' ')", as: :variant_skus
+#    indexes variants_including_master.sku, as: :variant_skus
     indexes :description
     #indexes :meta_description
     #indexes :meta_keywords
 
-    indexes taxons.name, as: :taxon_name, facets: true
-    indexes brand_taxons.name, as: :brand_name, facets: true
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Taxon.table_name}.name), ' ')", as: :taxon_name
+#    indexes taxons.name, as: :taxon_name
+    indexes "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::Taxon.table_name}.name ELSE NULL END)), ' ')", as: :brand_name
+#    indexes brand_taxons.name, as: :brand_name
         
     has taxons.id, as: :taxon_ids, facet: true  
-    has brand_taxons.id, as: :brand_ids, facet: true  
-    has category_taxons.id, as: :category_ids, facet: true  
+    has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
+    table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::
+    Taxon.table_name}.id ELSE NULL END)), ' ')", as: :brand_ids, multi: true, type: :integer, facet: true
+#    has brand_taxons.id, as: :brand_ids, facet: true  
+    has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
+    table_name}.taxonomy_id = #{Spree::Product.taxonomy_category.id} THEN #{Spree::
+    Taxon.table_name}.id ELSE NULL END)), ' ')", as: :category_ids, multi: true, type: :integer, facet: true
+#    has category_taxons.id, as: :category_ids, facet: true  
       
     join variant_images
     has "(COUNT(#{Spree::Image.table_name}.id) > 0)", as: :has_images, type: :boolean  
@@ -48,9 +57,16 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
     
     #TODO when searching for price range inside shop, we need to get price of product within the shop 
 #    has master.default_price.amount, type: :float, as: :master_price
-    has shop_variant_prices.price, type: :bigint, as: :shop_prices
-    has shop_variant_prices.shop_id, as: :shop_ids, facet: true
-    has shop_variant_prices.shop_and_price, as: :shop_and_prices
+    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id"
+    has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.price), ',')", 
+      multi: true, type: :bigint, as: :shop_prices
+#    has shop_variant_prices.price, type: :bigint, as: :shop_prices
+    has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.shop_id), ',')", 
+      multi: true, type: :integer, as: :shop_ids
+#    has shop_variant_prices.shop_id, as: :shop_ids, facet: true
+    has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.shop_and_price), ',')", 
+      multi: true, type: :bigint, as: :shop_and_prices
+#    has shop_variant_prices.shop_and_price, as: :shop_and_prices
     #group_by "spree_prices.amount"
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
@@ -65,6 +81,6 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
       has property_sql.call(prop[:name].to_s), :as => :"#{prop[:name]}_property", :type => prop[:type]
     end
     source.model.indexed_options.each do |opt|
-      has option_sql.call(opt.to_s), :as => :"#{opt}_option", :source => :ranged_query, :type => :multi, :facet => true
+      has option_sql.call(opt.to_s), :as => :"#{opt}_option", :source => :ranged_query, type: :multi, :facet => true
     end
   end
