@@ -51,19 +51,29 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
       
     join variant_images
     has "(COUNT(#{Spree::Image.table_name}.id) > 0)", as: :has_images, type: :boolean  
+    
     #has properties.name
   #  has variant.price , as: :price
 #  has variant.original_price , as: :original_price
     
-    #TODO when searching for price range inside shop, we need to get price of product within the shop 
 #    has master.default_price.amount, type: :float, as: :master_price
-    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id"
+    is_active_shop_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{
+      Spree::HowmuchShop.table_name}.is_authentic = 't')"
+    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{
+          Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id LEFT OUTER JOIN #{
+          Spree::HowmuchShop.table_name} ON #{
+          Spree::ShopVariantPrice.table_name}.shop_id = #{Spree::HowmuchShop.table_name}.id AND #{
+          is_active_shop_sql}"
+    has "(COUNT(#{Spree::HowmuchShop.table_name}.id) > 0)", as: :has_shops, type: :boolean  
+    
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.price), ',')", 
       multi: true, type: :bigint, as: :shop_prices
 #    has shop_variant_prices.price, type: :bigint, as: :shop_prices
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.shop_id), ',')", 
       multi: true, type: :integer, as: :shop_ids
 #    has shop_variant_prices.shop_id, as: :shop_ids, facet: true
+#    
+    #when searching for price range inside shop, we need to get price of product within the shop 
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.shop_and_price), ',')", 
       multi: true, type: :bigint, as: :shop_and_prices
 #    has shop_variant_prices.shop_and_price, as: :shop_and_prices

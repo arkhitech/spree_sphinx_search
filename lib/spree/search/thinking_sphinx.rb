@@ -137,6 +137,9 @@ module Spree::Search
         if search[:has_images]=='true'
           options.merge!(has_images: true)
         end
+        if search[:has_shops]=='true'
+          options.merge!(has_shops: true)
+        end
       end
       
 
