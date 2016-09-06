@@ -9,5 +9,5 @@ ThinkingSphinx::Index.define('spree/howmuch_shop', with: :active_record, delta: 
       
     has :is_authentic, type: :boolean
     has is_active_sql, as: :is_active, type: :boolean
-    has address.country_id, as: country_id
+   # has address.country_id, as: country_id
   end
