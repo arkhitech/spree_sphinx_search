@@ -140,8 +140,8 @@ module Spree::Search
         if search[:has_shops]=='true'
           options.merge!(has_shops: true)
         end
-        if search[:countries].present?
-          options.merge!(countries: search[:countries])
+        if search[:country_id].present?
+          options.merge!(country_ids: [search[:country_id]])
         end
       end
       

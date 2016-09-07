@@ -63,9 +63,14 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
           Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id LEFT OUTER JOIN #{
           Spree::HowmuchShop.table_name} ON #{
           Spree::ShopVariantPrice.table_name}.shop_id = #{Spree::HowmuchShop.table_name}.id AND #{
-          is_active_shop_sql}"
+          is_active_shop_sql} LEFT OUTER JOIN #{Spree::Address.table_name} ON #{
+          Spree::HowmuchShop.table_name}.address_id = #{Spree::Address.table_name}.id"
+          
     has "(COUNT(#{Spree::HowmuchShop.table_name}.id) > 0)", as: :has_shops, type: :boolean  
-    
+  
+    has "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.country_id), ',')", 
+      multi: true, type: :integer, as: :country_ids
+  
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.price), ',')", 
       multi: true, type: :bigint, as: :shop_prices
 #    has shop_variant_prices.price, type: :bigint, as: :shop_prices
