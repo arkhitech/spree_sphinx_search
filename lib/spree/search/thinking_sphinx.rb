@@ -145,8 +145,7 @@ module Spree::Search
         end
       end
       
-      options.merge!(order: "name ASC") # For sorting the product on the basis of there name
-      search_options.merge!(with: options)
+      search_options.merge!(with: options, order: :name) # For sorting the product on the basis of there name
       search_options.merge!(conditions: cond_options)
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
