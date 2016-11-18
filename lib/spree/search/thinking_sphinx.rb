@@ -26,6 +26,19 @@ module Spree::Search
 
     end
     
+    def retrieve_variants
+      set_base_scope
+      curr_page = page || 1
+      
+      @variants = Spree::Variant.search(self.escaped_query, search_options)
+      @properties[:products] = @variants
+      @properties[:facets] = @variants.facets
+      @variants = @variants.page(curr_page).per(per_page)
+      @variants
+      
+
+    end
+    
     protected 
     
     def search_options
