@@ -188,10 +188,10 @@ module Spree::Search
     def add_eagerload_scopes 
       if include_images
         #scope.eager_load({master: [:prices, :images]})
-        search_options.merge!(sql: {include: {master: [:prices, :images]}})
+        search_options.merge!(sql: {include: [:prices, :images]})
       else
         #scope.includes(master: :prices)
-        search_options.merge!(sql: {include: {master: [:prices]}})
+        search_options.merge!(sql: {include: [:prices]})
       end
     end
 
