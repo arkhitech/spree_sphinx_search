@@ -27,7 +27,7 @@ module Spree::Search
     end
     
     def retrieve_variants
-      set_base_scope
+      set_variant_base_scope
       curr_page = page || 1
       
       @variants = Spree::Variant.search(self.escaped_query, search_options)
@@ -163,6 +163,28 @@ module Spree::Search
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
+    def set_variant_base_scope
+      #base_scope = Spree::Product.active
+      with[:is_active] = true
+      #base_scope = base_scope.in_taxon(taxon) unless taxon.blank?
+      if taxon
+        if taxon.kind_of?(Array)
+          taxon_ids=[]
+          taxon.each do |t|
+            taxon_ids += t.self_and_descendants.map(&:id)
+          end
+        else
+          taxon_ids = taxon.self_and_descendants.map(&:id)
+        end
+        with.merge!(taxon_ids: taxon_ids)
+      end
+      set_products_conditions_for(keywords)
+      #TODO search scopes to be implement
+      #base_scope = add_search_scopes(base_scope)
+            
+      add_variant_eagerload_scopes
+    end
+    
     def set_base_scope
       #base_scope = Spree::Product.active
       with[:is_active] = true
@@ -186,6 +208,16 @@ module Spree::Search
     end
 
     def add_eagerload_scopes 
+      if include_images
+        #scope.eager_load({master: [:prices, :images]})
+        search_options.merge!(sql: {include: {master: [:prices, :images]}})
+      else
+        #scope.includes(master: :prices)
+        search_options.merge!(sql: {include: {master: [:prices]}})
+      end
+    end
+    
+    def add_variant_eagerload_scopes 
       if include_images
         #scope.eager_load({master: [:prices, :images]})
         search_options.merge!(sql: {include: [:prices, :images]})
