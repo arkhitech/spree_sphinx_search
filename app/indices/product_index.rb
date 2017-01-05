@@ -59,7 +59,7 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
 #    has master.default_price.amount, type: :float, as: :master_price
     is_active_shop_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{
       Spree::HowmuchShop.table_name}.is_authentic = 't')"
-    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{
+    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{Spree::ShopVariantPrice.table_name}.deleted_at IS NULL AND #{
           Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id LEFT OUTER JOIN #{
           Spree::HowmuchShop.table_name} ON #{
           Spree::ShopVariantPrice.table_name}.shop_id = #{Spree::HowmuchShop.table_name}.id AND #{
