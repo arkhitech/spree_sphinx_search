@@ -4,6 +4,12 @@ ThinkingSphinx::Index.define('spree/howmuch_shop', with: :active_record, delta: 
     indexes :name, sortable: true
     indexes :description
     
+    indexes address.address1, as: :address1
+    indexes address.address2, as: :address2
+    
+    indexes address.city, as: :city_name
+    indexes address.country.name, as: :country_name
+    
     has longitude, latitude
       
     has :is_authentic, type: :boolean

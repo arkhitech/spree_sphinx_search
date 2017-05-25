@@ -47,7 +47,13 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 #    indexes taxons.name, as: :taxon_name
     indexes "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::Taxon.table_name}.name ELSE NULL END)), ' ')", as: :brand_name
 #    indexes brand_taxons.name, as: :brand_name
-        
+
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.address1), ' ')", as: :address1
+    
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.address2), ' ')", as: :address2
+    
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.city), ' ')", as: :city
+  
 #    has product.taxons.id, as: :taxon_ids, facet: true  
     has "array_to_string(array_agg(DISTINCT #{Spree::Taxon.table_name}.id), ' ')", as: :taxon_ids, multi: true, type: :integer, facet: true
     
@@ -86,7 +92,7 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
   
     has "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.country_id), ',')", 
       multi: true, type: :integer, as: :country_ids
-  
+      
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.price), ',')", 
       multi: true, type: :bigint, as: :shop_prices
 #    has shop_variant_prices.price, type: :bigint, as: :shop_prices
