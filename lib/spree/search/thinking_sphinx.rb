@@ -156,6 +156,9 @@ module Spree::Search
         if search[:country_id].present?
           options.merge!(country_ids: [search[:country_id]])
         end
+        if search[:city].present?
+          options.merge!(city_name: [search[:city]])
+        end
       end
       
       search_options.merge!(with: options) # For sorting the product on the basis of there name
