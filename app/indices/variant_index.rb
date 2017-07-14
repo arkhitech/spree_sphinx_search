@@ -92,10 +92,7 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
   
     has "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.country_id), ',')", 
       multi: true, type: :integer, as: :country_ids
-    
-    has "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.city), ',')", 
-      multi: true, type: :string, as: :city_name
-      
+          
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.price), ',')", 
       multi: true, type: :bigint, as: :shop_prices
 #    has shop_variant_prices.price, type: :bigint, as: :shop_prices
