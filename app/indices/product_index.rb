@@ -38,6 +38,8 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
 #    indexes taxons.name, as: :taxon_name
     indexes "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::Taxon.table_name}.name ELSE NULL END)), ' ')", as: :brand_name
 #    indexes brand_taxons.name, as: :brand_name
+
+    indexes "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.city), ' ')", as: :city
         
     has taxons.id, as: :taxon_ids, facet: true  
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.

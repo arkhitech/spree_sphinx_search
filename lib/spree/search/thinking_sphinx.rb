@@ -157,7 +157,7 @@ module Spree::Search
           options.merge!(country_ids: [search[:country_id]])
         end
         if search[:city].present?
-          options.merge!(city: [search[:city]])
+          cond_options.merge!(city: search[:city])
         end
       end
       
