@@ -2,7 +2,7 @@ module Spree::Search
   class ThinkingSphinx < Spree::Core::Search::Base    
     def initialize(params)
       super(params)
-      @properties[:shop] = params[:shop]
+      @properties[:shop] = params[:shop].to_i
 
     end
 
