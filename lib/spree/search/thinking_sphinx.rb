@@ -79,14 +79,14 @@ module Spree::Search
           start_range = search[:price_range_from].to_i
           end_range = search[:price_range_to] && search[:price_range_to].to_i || 100000
           if shop
-            options.merge!(shop_ids: shop) if shop
+            options.merge!(shop_ids: [shop]) if shop
             options.merge!(shop_and_prices: Spree::ShopVariantPrice.shop_price_value(shop, start_range)..Spree::ShopVariantPrice.shop_price_value(shop, end_range))
           else
             #options.merge!(master_price: start_range..end_range)
             options.merge!(shop_prices: (start_range*100)..(end_range*100))
           end
         else 
-          options.merge!(shop_ids: shop) if shop            
+          options.merge!(shop_ids: [shop]) if shop            
         end
         if search[:price_range_any].present?
           start_range = 50000.0
