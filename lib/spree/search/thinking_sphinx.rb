@@ -132,13 +132,28 @@ module Spree::Search
           #          cond_options.merge!(brand: search[:brand_any])
         end  
         if search[:brand_ids].present?
-          options.merge!(brand_ids: search[:brand_ids])
+          case search[:brand_ids]
+          when String
+            options.merge!(category_ids: search[:brand_ids].split(',').map(&:to_i))
+          when Array
+            options.merge!(category_ids: search[:brand_ids])          
+          end
         end
         if search[:category_ids].present?
-          options.merge!(category_ids: search[:category_ids])
+          case search[:category_ids]
+          when String
+            options.merge!(category_ids: search[:category_ids].split(',').map(&:to_i))
+          when Array
+            options.merge!(category_ids: search[:category_ids])          
+          end
         end
         if search[:taxon_ids].present?
-          options.merge!(taxon_ids: search[:taxon_ids])
+          case search[:taxon_ids]
+          when String
+            options.merge!(taxon_ids: search[:taxon_ids].split(',').map(&:to_i))
+          when Array
+            options.merge!(taxon_ids: search[:taxon_ids])            
+          end
         end
         if search[:alphabet].present?
           alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
