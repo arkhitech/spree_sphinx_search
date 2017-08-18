@@ -65,6 +65,7 @@ module Spree::Search
     def set_products_conditions_for(query)
       options = with     
       cond_options = conditions
+      without = {}
       self.escaped_query = "#{query && Riddle.escape(query)}"
       self.escaped_query = '\\<' if self.escaped_query && self.escaped_query.strip == '<'
       
@@ -172,13 +173,15 @@ module Spree::Search
         if search[:country_id].present?
           options.merge!(country_ids: [search[:country_id]])
         end
+        if search[:without_country_ids]
+          without.merge!(country_ids: search[:without_country_ids])
+        end
         if search[:city].present?
           cond_options.merge!(city: search[:city])
         end
       end
-      
-      search_options.merge!(with: options) # For sorting the product on the basis of there name
-      search_options.merge!(conditions: cond_options)
+      # For sorting the product on the basis of there name
+      search_options.merge!(with: options, without: without, conditions: cond_options) 
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
