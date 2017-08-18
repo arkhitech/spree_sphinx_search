@@ -3,6 +3,7 @@ module Spree::Search
     def initialize(params)
       super(params)
       @properties[:shop] = params[:shop].to_i
+      @properties[:sql_include] = params[:sql_include]
 
     end
 
@@ -226,7 +227,9 @@ module Spree::Search
     end
 
     def add_eagerload_scopes 
-      if include_images
+      if sql_include
+        search_options.merge!(sql: {include: sql_include})
+      elsif include_images
         #scope.eager_load({master: [:prices, :images]})
         search_options.merge!(sql: {include: {master: [:prices, :images]}})
       else
@@ -236,7 +239,9 @@ module Spree::Search
     end
     
     def add_variant_eagerload_scopes 
-      if include_images
+      if sql_include
+        search_options.merge!(sql: {include: sql_include})
+      elsif include_images
         #scope.eager_load({master: [:prices, :images]})
         search_options.merge!(sql: {include: [:prices, :images]})
       else
