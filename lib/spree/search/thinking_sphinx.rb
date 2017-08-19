@@ -136,9 +136,9 @@ module Spree::Search
         if search[:brand_ids].present?
           case search[:brand_ids]
           when String
-            options.merge!(category_ids: search[:brand_ids].split(',').map(&:to_i))
+            options.merge!(brand_ids: search[:brand_ids].split(',').map(&:to_i))
           when Array
-            options.merge!(category_ids: search[:brand_ids])          
+            options.merge!(brand_ids: search[:brand_ids])          
           end
         end
         if search[:category_ids].present?
