@@ -43,13 +43,16 @@ module Spree::Search
     protected 
     
     def search_options
-      @search_options ||= {with: with, conditions: conditions, max_matches: 25000}
+      @search_options ||= {with_all: with_all, with: with, conditions: conditions, max_matches: 25000}
     end
     
     def conditions
       @conditions ||= {}
     end
     
+    def with_all
+      @with_all ||= {}
+    end
     def with
       @with ||= {}
     end
@@ -63,6 +66,7 @@ module Spree::Search
     end
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
     def set_products_conditions_for(query)
+      options_all = with_all
       options = with     
       cond_options = conditions
       without = {}
@@ -136,25 +140,25 @@ module Spree::Search
         if search[:brand_ids].present?
           case search[:brand_ids]
           when String
-            options.merge!(brand_ids: search[:brand_ids].split(',').map(&:to_i))
+            options_all.merge!(brand_ids: search[:brand_ids].split(',').map(&:to_i))
           when Array
-            options.merge!(brand_ids: search[:brand_ids])          
+            options_all.merge!(brand_ids: search[:brand_ids])          
           end
         end
         if search[:category_ids].present?
           case search[:category_ids]
           when String
-            options.merge!(category_ids: search[:category_ids].split(',').map(&:to_i))
+            options_all.merge!(category_ids: search[:category_ids].split(',').map(&:to_i))
           when Array
-            options.merge!(category_ids: search[:category_ids])          
+            options_all.merge!(category_ids: search[:category_ids])          
           end
         end
         if search[:taxon_ids].present?
           case search[:taxon_ids]
           when String
-            options.merge!(taxon_ids: search[:taxon_ids].split(',').map(&:to_i))
+            options_all.merge!(taxon_ids: search[:taxon_ids].split(',').map(&:to_i))
           when Array
-            options.merge!(taxon_ids: search[:taxon_ids])            
+            options_all.merge!(taxon_ids: search[:taxon_ids])            
           end
         end
         if search[:alphabet].present?
