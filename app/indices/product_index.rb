@@ -36,18 +36,18 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
 
     indexes "array_to_string(array_agg(DISTINCT #{Spree::Taxon.table_name}.name), ' ')", as: :taxon_name
 #    indexes taxons.name, as: :taxon_name
-    indexes "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::Taxon.table_name}.name ELSE NULL END)), ' ')", as: :brand_name
+    indexes "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_brand.id} THEN #{Spree::Taxon.table_name}.name ELSE NULL END)), ' ')", as: :brand_name
 #    indexes brand_taxons.name, as: :brand_name
 
     indexes "array_to_string(array_agg(DISTINCT #{Spree::Address.table_name}.city), ' ')", as: :city
         
     has taxons.id, as: :taxon_ids, facet: true  
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
-    table_name}.taxonomy_id = #{Spree::Product.taxonomy_brand.id} THEN #{Spree::
+    table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_brand.id} THEN #{Spree::
     Taxon.table_name}.id ELSE NULL END)), ' ')", as: :brand_ids, multi: true, type: :integer, facet: true
 #    has brand_taxons.id, as: :brand_ids, facet: true  
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
-    table_name}.taxonomy_id = #{Spree::Product.taxonomy_category.id} THEN #{Spree::
+    table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_category.id} THEN #{Spree::
     Taxon.table_name}.id ELSE NULL END)), ' ')", as: :category_ids, multi: true, type: :integer, facet: true
 #    has category_taxons.id, as: :category_ids, facet: true  
      
