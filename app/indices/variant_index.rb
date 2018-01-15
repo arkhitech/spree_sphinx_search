@@ -111,13 +111,13 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 
     #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
     
-#    source.model.indexed_attributes.each do |attr|
-#      has attr[:field], attr[:options]
-#    end
-#    source.model.indexed_properties.each do |prop|
-#      has property_sql.call(prop[:name].to_s), :as => :"#{prop[:name]}_property", :type => prop[:type]
-#    end
-#    source.model.indexed_options.each do |opt|
-#      has option_sql.call(opt.to_s), :as => :"#{opt}_option", :source => :ranged_query, type: :multi, :facet => true
-#    end
+    source.model.indexed_attributes.each do |attr|
+      has attr[:field], attr[:options]
+    end
+    source.model.indexed_properties.each do |prop|
+      has property_sql.call(prop[:name].to_s), as: :"#{prop[:name]}_property", type: prop[:type]
+    end
+    source.model.indexed_options.each do |opt|
+      has option_sql.call(opt.to_s), as: :"#{opt}_option", source: :ranged_query, type: :multi, facet: true
+    end
   end

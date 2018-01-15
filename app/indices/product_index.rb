@@ -98,6 +98,6 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
       has property_sql.call(prop[:name].to_s), :as => :"#{prop[:name]}_property", :type => prop[:type]
     end
     source.model.indexed_options.each do |opt|
-      has option_sql.call(opt.to_s), :as => :"#{opt}_option", :source => :ranged_query, type: :multi, :facet => true
+      has option_sql.call(opt.to_s), as: :"#{opt}_option", source: :ranged_query, type: :multi, facet: true
     end
   end

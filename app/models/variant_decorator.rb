@@ -1,4 +1,4 @@
-Spree::Product.class_eval do
+Spree::Variant.class_eval do
   class_attribute :indexed_options, :indexed_properties
   self.indexed_options ||= []
   # [{:name => :age_from, :type => :integer}]
