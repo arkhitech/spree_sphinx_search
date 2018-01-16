@@ -1,5 +1,5 @@
 ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
-    #is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW() #{'AND (spree_products.count_on_hand > 0)' unless Spree::Config[:allow_backorders]} )"
+    #is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW() #{'AND (spree_products.count_on_hand > 0)' unless Spree::Config[:allow_backorders]} )"    
     
     is_active_sql = "(#{Spree::Variant.table_name}.deleted_at IS NULL)"   
     option_sql = lambda do |option_name|
@@ -65,6 +65,7 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
     table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_category.id} THEN #{Spree::
     Taxon.table_name}.id ELSE NULL END)), ' ')", as: :category_ids, multi: true, type: :integer, facet: true
+    has "array_to_string(array_agg(DISTINCT spree_option_value_variants.option_value_id), ' ')", as: :option_value_ids, multi: true, type: :integer, facet: true
 #    has category_taxons.id, as: :category_ids, facet: true  
      
 #change #    join variant_images
@@ -86,7 +87,9 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
           }.id LEFT OUTER JOIN #{Spree::Product.table_name} ON #{
           Spree::Product.table_name}.id = #{Spree::Variant.table_name
           }.product_id LEFT OUTER JOIN spree_products_taxons ON spree_products_taxons.product_id = #{Spree::Product.table_name
-          }.id LEFT OUTER JOIN #{Spree::Taxon.table_name} ON #{Spree::Taxon.table_name}.id = spree_products_taxons.taxon_id"
+          }.id LEFT OUTER JOIN #{Spree::Taxon.table_name} ON #{Spree::Taxon.table_name
+          }.id = spree_products_taxons.taxon_id LEFT OUTER JOIN spree_option_value_variants ON #{Spree::Variant.table_name
+          }.id = spree_option_value_variants.variant_id"
           
     has "(COUNT(#{Spree::HowmuchShop.table_name}.id) > 0)", as: :has_shops, type: :boolean  
   
@@ -111,13 +114,13 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 
     #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
     
-    source.model.indexed_attributes.each do |attr|
-      has attr[:field], attr[:options]
-    end
-    source.model.indexed_properties.each do |prop|
-      has property_sql.call(prop[:name].to_s), as: :"#{prop[:name]}_property", type: prop[:type]
-    end
-    source.model.indexed_options.each do |opt|
-      has option_sql.call(opt.to_s), as: :"#{opt}_option", source: :ranged_query, type: :multi, facet: true
-    end
+#    source.model.indexed_attributes.each do |attr|
+#      has attr[:field], attr[:options]
+#    end
+#    source.model.indexed_properties.each do |prop|
+#      has property_sql.call(prop[:name].to_s), as: :"#{prop[:name]}_property", type: prop[:type]
+#    end
+#    source.model.indexed_options.each do |opt|
+#      has option_sql.call(opt.to_s), as: :"#{opt}_option", source: :bigint, type: :multi, facet: true
+#    end
   end
