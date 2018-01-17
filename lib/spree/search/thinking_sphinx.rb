@@ -161,6 +161,14 @@ module Spree::Search
             options_all.merge!(taxon_ids: search[:taxon_ids])            
           end
         end
+        if search[:option_type_ids].present?
+          case search[:option_type_ids]
+          when String
+            options_all.merge!(option_type_ids: search[:option_type_ids].split(',').map(&:to_i))
+          when Array
+            options_all.merge!(option_type_ids: search[:option_type_ids])            
+          end
+        end
         if search[:alphabet].present?
           alphabet_search_query = " (@name ^#{search[:alphabet]}*)"
           self.escaped_query << alphabet_search_query
