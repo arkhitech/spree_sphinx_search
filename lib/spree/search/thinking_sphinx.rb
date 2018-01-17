@@ -161,12 +161,12 @@ module Spree::Search
             options_all.merge!(taxon_ids: search[:taxon_ids])            
           end
         end
-        if search[:option_type_ids].present?
-          case search[:option_type_ids]
+        if search[:option_value_ids].present?
+          case search[:option_value_ids]
           when String
-            options_all.merge!(option_type_ids: search[:option_type_ids].split(',').map(&:to_i))
+            options_all.merge!(option_value_ids: search[:option_value_ids].split(',').map(&:to_i))
           when Array
-            options_all.merge!(option_type_ids: search[:option_type_ids])            
+            options_all.merge!(option_value_ids: search[:option_value_ids])            
           end
         end
         if search[:alphabet].present?
@@ -193,7 +193,7 @@ module Spree::Search
         end
       end
       # For sorting the product on the basis of there name
-      search_options.merge!(with: options, without: without, conditions: cond_options) 
+      search_options.merge!(with_all: options_all, with: options, without: without, conditions: cond_options) 
       #base_scope.where("#{Spree::Product.table_name}.id" => @properties[:product_ids])
     end
 
@@ -216,7 +216,7 @@ module Spree::Search
       #TODO search scopes to be implement
       #base_scope = add_search_scopes(base_scope)
             
-      add_variant_eagerload_scopes
+      add_eagerload_scopes
     end
     
     def set_base_scope
@@ -253,7 +253,7 @@ module Spree::Search
       end
     end
     
-    def add_variant_eagerload_scopes 
+    def add_eagerload_scopes 
       if sql_include
         search_options.merge!(sql: {include: sql_include})
       elsif include_images
