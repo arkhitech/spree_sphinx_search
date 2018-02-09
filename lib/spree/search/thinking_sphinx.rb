@@ -176,10 +176,10 @@ module Spree::Search
           
         end
         
-        if search[:has_images]=='true'
+        if ActiveRecord::Type::Boolean.new.cast search[:has_images]
           options.merge!(has_images: true)
         end
-        if search[:has_shops]=='true'
+        if ActiveRecord::Type::Boolean.new.cast search[:has_shops]
           options.merge!(has_shops: true)
         end
         if search[:country_id].present?
@@ -253,18 +253,6 @@ module Spree::Search
       end
     end
     
-    def add_eagerload_scopes 
-      if sql_include
-        search_options.merge!(sql: {include: sql_include})
-      elsif include_images
-        #scope.eager_load({master: [:prices, :images]})
-        search_options.merge!(sql: {include: [:prices, :images]})
-      else
-        #scope.includes(master: :prices)
-        search_options.merge!(sql: {include: [:prices]})
-      end
-    end
-
     #TODO implement this to be sphinx compatible
     def add_search_scopes(base_scope)
       search.each do |name, scope_attribute|
