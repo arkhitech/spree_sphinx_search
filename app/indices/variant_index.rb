@@ -1,5 +1,5 @@
 ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
-    #is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW() #{'AND (spree_products.count_on_hand > 0)' unless Spree::Config[:allow_backorders]} )"    
+    is_active_product_sql = "(#{Spree::Product.table_name}.deleted_at IS NULL AND #{Spree::Product.table_name}.available_on <= NOW())"   
     
     is_active_sql = "(#{Spree::Variant.table_name}.deleted_at IS NULL)"   
     option_sql = lambda do |option_name|
@@ -86,7 +86,7 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
           Spree::HowmuchShop.table_name}.address_id = #{Spree::Address.table_name
           }.id LEFT OUTER JOIN #{Spree::Product.table_name} ON #{
           Spree::Product.table_name}.id = #{Spree::Variant.table_name
-          }.product_id LEFT OUTER JOIN spree_products_taxons ON spree_products_taxons.product_id = #{Spree::Product.table_name
+          }.product_id AND #{is_active_product_sql} LEFT OUTER JOIN spree_products_taxons ON spree_products_taxons.product_id = #{Spree::Product.table_name
           }.id LEFT OUTER JOIN #{Spree::Taxon.table_name} ON #{Spree::Taxon.table_name
           }.id = spree_products_taxons.taxon_id LEFT OUTER JOIN spree_option_value_variants ON #{Spree::Variant.table_name
           }.id = spree_option_value_variants.variant_id"
