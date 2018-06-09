@@ -61,7 +61,7 @@ module Spree::Search
       @escaped_query ||= ''
     end
     
-    def escaped_query=(query)
+    def escsearaped_query=(query)
       @escaped_query = query
     end
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
@@ -185,7 +185,7 @@ module Spree::Search
         if search[:country_id].present?
           options.merge!(country_ids: [search[:country_id]])
         end
-        if search[:without_country_ids]
+        if search[:without_country_ids].present?
           without.merge!(country_ids: search[:without_country_ids])
         end
         if search[:city].present?
