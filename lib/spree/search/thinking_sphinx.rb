@@ -61,7 +61,7 @@ module Spree::Search
       @escaped_query ||= ''
     end
     
-    def escsearaped_query=(query)
+    def escaped_query=(query)
       @escaped_query = query
     end
     # method should return AR::Relations with conditions {:conditions=> "..."} for Product model
@@ -129,13 +129,8 @@ module Spree::Search
           #            options.merge!(price: 0.001..500000.0)
           #          end                    
         end
-        if search[:brand_any].present?
-          brands = search[:brand_any]
-          brand_search_query = brands.join('"| @brand "')
-          brand_search_query = " (@brand \"#{brand_search_query}\")"
-          self.escaped_query << brand_search_query
-          search_options[:match_mode] = :extended
-          #          cond_options.merge!(brand: search[:brand_any])
+        if search[:brand_name].present?
+          cond_options.merge!(brand_name: search[:brand_name])
         end  
         if search[:brand_ids].present?
           case search[:brand_ids]
