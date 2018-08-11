@@ -1,7 +1,7 @@
 ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
     #is_active_sql = "(spree_products.deleted_at IS NULL AND spree_products.available_on <= NOW() #{'AND (spree_products.count_on_hand > 0)' unless Spree::Config[:allow_backorders]} )"
     
-    is_active_sql = "(#{Spree::Product.table_name}.deleted_at IS NULL AND #{Spree::Product.table_name}.available_on <= NOW())"   
+    is_active_sql = "(#{Spree::Product.table_name}.deleted_at IS NULL AND #{Spree::Product.table_name}.available_on <= NOW() AND (#{Spree::Product.table_name}.discontinue_on IS NULL OR #{Spree::Product.table_name}.discontinue_on > NOW()))"   
     option_sql = lambda do |option_name|
       sql = <<-eos
         SELECT DISTINCT p.id, ov.id
