@@ -65,10 +65,11 @@ ThinkingSphinx::Index.define('spree/product', with: :active_record, delta: Think
       Spree::HowmuchShop.table_name}.published_at IS NOT NULL)"
     join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{Spree::ShopVariantPrice.table_name}.deleted_at IS NULL AND #{
           Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id LEFT OUTER JOIN #{
-          Spree::HowmuchShop.table_name} ON #{
-          Spree::ShopVariantPrice.table_name}.shop_id = #{Spree::HowmuchShop.table_name}.id AND #{
+          Spree::Store.table_name} ON #{Spree::ShopVariantPrice.table_name}.store_id = #{
+          Spree::Store.table_name}.id LEFT OUTER JOIN #{Spree::HowmuchShop.table_name} ON #{
+          Spree::Store.table_name}.id = #{Spree::HowmuchShop.table_name}.store_id AND #{
           is_active_shop_sql} LEFT OUTER JOIN #{Spree::Address.table_name} ON #{
-          Spree::HowmuchShop.table_name}.address_id = #{Spree::Address.table_name
+          Spree::Store.table_name}.address_id = #{Spree::Address.table_name
           }.id LEFT OUTER JOIN spree_option_value_variants ON #{Spree::Variant.table_name
           }.id = spree_option_value_variants.variant_id"
           

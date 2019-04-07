@@ -1,7 +1,12 @@
 ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
     is_active_product_sql = "(#{Spree::Product.table_name}.deleted_at IS NULL AND #{Spree::Product.table_name}.available_on <= NOW())"   
     
-    is_active_sql = "(#{Spree::Variant.table_name}.deleted_at IS NULL)"   
+    is_active_sql = "(#{Spree::Variant.table_name}.deleted_at IS NULL AND (#{
+      Spree::Variant.table_name}.discontinue_on IS NULL OR #{Spree::Variant.table_name}.discontinue_on >= NOW()))"
+    
+    is_available_on_frontend_sql = "(#{Spree::ShopVariantPrice.table_name}.deleted_at IS NULL AND (#{
+      Spree::Variant.table_name}.discontinue_on IS NULL OR #{Spree::Variant.table_name}.discontinue_on >= NOW()) AND #{
+      Spree::ShopVariantPrice.table_name}.display_on IN ('both', 'front_end'))"
     option_sql = lambda do |option_name|
       sql = <<-eos
         SELECT DISTINCT p.id, ov.id
@@ -59,12 +64,12 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
     
     
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
-    table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_brand.id} THEN #{Spree::
-    Taxon.table_name}.id ELSE NULL END)), ' ')", as: :brand_ids, multi: true, type: :integer, facet: true
+      table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_brand.id} THEN #{Spree::
+      Taxon.table_name}.id ELSE NULL END)), ' ')", as: :brand_ids, multi: true, type: :integer, facet: true
 #    has brand_taxons.id, as: :brand_ids, facet: true  
     has "array_to_string(array_agg(DISTINCT (CASE WHEN #{Spree::Taxon.
-    table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_category.id} THEN #{Spree::
-    Taxon.table_name}.id ELSE NULL END)), ' ')", as: :category_ids, multi: true, type: :integer, facet: true
+      table_name}.taxonomy_id = #{Spree::Taxonomy.taxonomy_category.id} THEN #{Spree::
+      Taxon.table_name}.id ELSE NULL END)), ' ')", as: :category_ids, multi: true, type: :integer, facet: true
     has "array_to_string(array_agg(DISTINCT spree_option_value_variants.option_value_id), ' ')", as: :option_value_ids, multi: true, type: :integer, facet: true
 #    has category_taxons.id, as: :category_ids, facet: true  
      
@@ -78,18 +83,21 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 #    has master.default_price.amount, type: :float, as: :master_price
     is_active_shop_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{
       Spree::HowmuchShop.table_name}.published_at IS NOT NULL)"
-    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{Spree::ShopVariantPrice.table_name}.deleted_at IS NULL AND #{
-          Spree::ShopVariantPrice.table_name}.variant_id = #{Spree::Variant.table_name}.id LEFT OUTER JOIN #{
-          Spree::HowmuchShop.table_name} ON #{
-          Spree::ShopVariantPrice.table_name}.shop_id = #{Spree::HowmuchShop.table_name}.id AND #{
+    join "LEFT OUTER JOIN #{Spree::ShopVariantPrice.table_name} ON #{
+          Spree::ShopVariantPrice.table_name}.deleted_at IS NULL AND #{
+          Spree::ShopVariantPrice.table_name}.variant_id = #{
+          Spree::Variant.table_name}.id LEFT OUTER JOIN #{Spree::Store.table_name} ON #{
+          Spree::ShopVariantPrice.table_name}.store_id = #{
+          Spree::Store.table_name}.id LEFT OUTER JOIN #{Spree::HowmuchShop.table_name} ON #{
+          Spree::Store.table_name}.id = #{Spree::HowmuchShop.table_name}.store_id AND #{
           is_active_shop_sql} LEFT OUTER JOIN #{Spree::Address.table_name} ON #{
-          Spree::HowmuchShop.table_name}.address_id = #{Spree::Address.table_name
+          Spree::Store.table_name}.address_id = #{Spree::Address.table_name
           }.id LEFT OUTER JOIN #{Spree::Product.table_name} ON #{
           Spree::Product.table_name}.id = #{Spree::Variant.table_name
           }.product_id AND #{is_active_product_sql} LEFT OUTER JOIN spree_products_taxons ON spree_products_taxons.product_id = #{Spree::Product.table_name
           }.id LEFT OUTER JOIN #{Spree::Taxon.table_name} ON #{Spree::Taxon.table_name
-          }.id = spree_products_taxons.taxon_id LEFT OUTER JOIN spree_option_value_variants ON #{Spree::Variant.table_name
-          }.id = spree_option_value_variants.variant_id"
+          }.id = spree_products_taxons.taxon_id LEFT OUTER JOIN spree_option_value_variants ON #{
+          Spree::Variant.table_name}.id = spree_option_value_variants.variant_id"
           
     has "(COUNT(#{Spree::HowmuchShop.table_name}.id) > 0)", as: :has_shops, type: :boolean  
   
@@ -101,6 +109,8 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 #    has shop_variant_prices.price, type: :bigint, as: :shop_prices
     has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.shop_id), ',')", 
       multi: true, type: :integer, as: :shop_ids
+    has "array_to_string(array_agg(DISTINCT #{Spree::ShopVariantPrice.table_name}.store_id), ',')", 
+      multi: true, type: :integer, as: :store_ids
 #    has shop_variant_prices.shop_id, as: :shop_ids, facet: true
 #    
     #when searching for price range inside shop, we need to get price of product within the shop 
@@ -111,6 +121,7 @@ ThinkingSphinx::Index.define('spree/variant', with: :active_record, delta: Think
 #    group_by :available_on
     #group_by "#{Spree::ProductProperty.table_name}.name"
     has is_active_sql, as: :is_active, type: :boolean
+    #has is_available_on_frontend_sql, as: :is_available_on_frontend, type: :boolean
 
     #has "CRC32(#{property_sql.call('Brand')}", as: :brand, type: :integer, facets: true
     
