@@ -1,6 +1,9 @@
+ThinkingSphinx::Configuration.instance.indices.reject!{|i| i.reference == :'spree/howmuch_shop'}
 ThinkingSphinx::Index.define('spree/howmuch_shop', with: :active_record, delta: ThinkingSphinx::Deltas::SidekiqDelta) do
     
-    is_active_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{Spree::HowmuchShop.table_name}.published_at IS NOT NULL) AND #{Spree::HowmuchShop.table_name}.approved_at IS NOT NULL)"
+    is_active_sql = "(#{Spree::HowmuchShop.table_name}.deleted_at IS NULL AND #{
+      Spree::HowmuchShop.table_name}.published_at IS NOT NULL AND #{
+      Spree::HowmuchShop.table_name}.approved_at IS NOT NULL)"
     indexes :name, sortable: true
     indexes :description
     indexes store.address.phone, as: :phone
